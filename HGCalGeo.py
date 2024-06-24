@@ -14,7 +14,7 @@ class HGCalGeo:
         self.nrings = nrings
         self.nlayers = nlayers
         #self.max_cells = hex_num(nrings)
-        self.max_cells = 3000
+        self.max_cells = 1500
 
         #Width of each hexagon
         self.hexsize = 1.2
@@ -101,7 +101,7 @@ class HGCalGeo:
                         theta = np.arctan2(n_y, n_x) % (2. *np.pi)
                         thetas.append(theta)
                         ring.append(nid)
-                        ring_map.append(i)
+                        ring_map.append(i+1)
                         cs.append(theta)
 
 
@@ -111,7 +111,6 @@ class HGCalGeo:
             #Order cells in each layer by theta
             #aka counterclockwise starting at 3 oclock
             order = np.argsort(thetas)
-            ring_len = ring_num(i+1)
             sorted_ids = np.array(ring)[order].reshape(-1)
             sorted_xs = np.array(xs)[order].reshape(-1)
             sorted_ys = np.array(ys)[order].reshape(-1)

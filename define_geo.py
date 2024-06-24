@@ -5,11 +5,12 @@ plot_dir = 'plots/'
 d_dir = "/nashome/o/oamram/HGCal/"
 rf = uproot.open(d_dir + "DetIdLUT.root")
 geo = rf["analyzer/tree"].arrays()
+do_plot = False
 
 keydf = ak.to_pandas(geo[0])
 keydf = keydf.set_index("globalid")
 
-data_dir = "/nashome/o/oamram/HGCal/hgcal_photons_fixed_angle_william/"
+data_dir = "/wclustre/cms_mlsim/denoise/CaloChallenge/hgcal_photons_fixed_angle_william/"
 branches = ['genPh_eta', 'genPh_phi']
 array = readpath(Path(data_dir + "ntupleTree_1.root"), start = None, end = None, branches = branches )
 
@@ -72,7 +73,7 @@ for lay in range(1, nlayers+1):
     c0 = np.nonzero(cell_id == center_cell_id)[0]
 
     neigh_lay = [n[mask] for n in neighs]
-    geom.build_layer(lay-1, center_cell_id, cell_id[mask], cell_x[mask], cell_y[mask], neigh_lay, cell_type = cell_type[mask], plot = True)
+    geom.build_layer(lay-1, center_cell_id, cell_id[mask], cell_x[mask], cell_y[mask], neigh_lay, cell_type = cell_type[mask], plot = do_plot)
 
 geom.construct_id_map()
 geom.save('geom.pkl')
