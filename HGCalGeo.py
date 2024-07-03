@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Optional
 from matplotlib import pyplot as plt
+from matplotlib.colors import LogNorm as LN
 from math import ceil
 import numpy as np
 import pickle
@@ -139,7 +140,7 @@ class HGCalGeo:
         if(plot):
             #thetas = np.arctan2(self.ymap[ilay], self.xmap[ilay]) % (2. * np.pi)
             vals = np.ones_like(self.xmap[ilay])
-            plot_shower(self.xmap[ilay], self.ymap[ilay], vals, nrings = self.nrings, alpha = 0.5, cmap = 'Blues', fig = fig)
+            plot_shower_hex(self.xmap[ilay], self.ymap[ilay], vals, nrings = self.nrings, alpha = 0.5, cmap = 'Blues', fig = fig)
             fout = plot_dir + 'geo_lay%i.png' %(ilay+1)
             print("Saving %s" % fout)
             plt.savefig(fout)
@@ -168,7 +169,7 @@ class HGCalGeo:
         f.close()
 
 
-def plot_shower(xs, ys, Es, nrings = 8, hexwidth = 1.20118, fout = "", fig = None, alpha = 1.0, cmap = 'viridis', zscale = 'max'):
+def plot_shower_hex(xs, ys, Es, nrings = 8, hexwidth = 1.20118, fout = "", fig = None, alpha = 1.0, cmap = 'viridis', zscale = 'max', vmin = 1e-4, vmax = None, log_scale = True):
     """Plot a shower with proper hexagonal binning.
     x and y locations assumed to be relative to center of a central cell.
     Note that the HGCal geometry has 'horizonally' oriented hexagons (pointy edge of center cell is up)
@@ -207,13 +208,16 @@ def plot_shower(xs, ys, Es, nrings = 8, hexwidth = 1.20118, fout = "", fig = Non
     #rotate 90 degrees to align hex orientation
     xs_rot,ys_rot = ys, -xs
 
-    if(zscale == 'total'):
-        vmax = np.sum(Es)
-    else:
-        vmax = None
 
+    if(vmax is None): vmax = np.amax(Es)
+    if(log_scale):
+        norm = LN(vmin, vmax)
+        vmin,vmax = None, None
+    else:
+        norm = None
+    
     hexbins2 = plt.hexbin(xs_rot + xoff, ys_rot + yoff, C = Es, gridsize = (nhex, nyhex), extent=extent, edgecolor = 'black', 
-            alpha = alpha, cmap = cmap, vmin = 0, vmax = vmax, reduce_C_function = np.sum)
+            alpha = alpha, cmap = cmap, vmin = vmin, vmax = vmax, norm = norm, reduce_C_function = np.sum)
 
     #correct offset
     all_offsets2 = np.array(hexbins2.get_offsets())
