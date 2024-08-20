@@ -15,7 +15,7 @@ class HGCalGeo:
         self.nrings = nrings
         self.nlayers = nlayers
         #self.max_cells = hex_num(nrings)
-        self.max_cells = 1500
+        self.max_cells = 3000
 
         #Width of each hexagon
         self.hexsize = 1.2
@@ -35,8 +35,12 @@ class HGCalGeo:
         self.center_y = np.zeros((nlayers))
         self.ncells = np.zeros((nlayers))
 
+    def get_neighs_by_dist(self, dRs, cell_ids, iRing = 0, hex_size = 1.2):
+        dR_cut = (dRs < (iRing + 0.5) * hex_size) &  (dRs > (iRing - 0.5) * hex_size)
+        return cell_ids[dR_cut]
 
-    def build_layer(self, ilay, center_id, cell_ids, cell_x, cell_y, neighbors, cell_type = None, plot = False, plot_dir = 'plots/'):
+
+    def build_layer(self, ilay, center_id, cell_ids, cell_x, cell_y, neighbors, dRs = None,  cell_type = None, plot = False, manual_neighs = False, hex_size = 1.21, plot_dir = 'plots/'):
 
         center_cell_idx = np.nonzero(cell_ids == center_id)[0][0]
         print('Contructing GeoMap for Layer %i, center cell is %i' % (ilay, center_id))
@@ -46,6 +50,7 @@ class HGCalGeo:
 
 
         self.center_x[ilay], self.center_y[ilay] = cell_x[center_cell_idx], cell_y[center_cell_idx]
+        print('center x,y', self.center_x[ilay], self.center_y[ilay])
 
         xs = [0.]
         ys = [0.]
@@ -83,28 +88,35 @@ class HGCalGeo:
             ys = []
             types = []
             ring_map =[]
-            for seed_id, seed_idx in seeds:
-                for j,neigh in enumerate(neighbors):
-                    nid = neigh[seed_idx]
-                    if(nid in filled or nid == 0): continue #already added
 
-                    n_idx =  id_lookup_dict.get(nid)
-                    if(n_idx is not None):
-                        n_x, n_y = cell_x[n_idx] - self.center_x[ilay], cell_y[n_idx] - self.center_y[ilay]
+            if(manual_neighs):
+                neighs = self.get_neighs_by_dist(dRs, cell_ids, iRing = i+1, hex_size = hex_size)
+            else:
+                neighs = []
+                for seed_id, seed_idx in seeds:
+                    for j,neigh in enumerate(neighbors):
+                        neighs.append(neigh[seed_idx])
 
-                        filled.add(nid)
-                        new_seeds.append((nid, n_idx))
-                        xs.append(n_x)
-                        ys.append(n_y)
-                        if(cell_type is not None): types.append(cell_type[n_idx])
+            for nid in neighs:
+                if(nid in filled or nid == 0): continue #already added
 
-                        #angle from 0 to 2pi, arctan2 has (y,x) convention for some reason
-                        theta = np.arctan2(n_y, n_x) % (2. *np.pi)
-                        thetas.append(theta)
-                        ring.append(nid)
-                        ring_map.append(i+1)
-                        cs.append(theta)
+                n_idx =  id_lookup_dict.get(nid)
+                if(n_idx is not None):
+                    n_x, n_y = cell_x[n_idx] - self.center_x[ilay], cell_y[n_idx] - self.center_y[ilay]
+                    #print(nid, n_x,n_y)
 
+                    filled.add(nid)
+                    new_seeds.append((nid, n_idx))
+                    xs.append(n_x)
+                    ys.append(n_y)
+                    if(cell_type is not None): types.append(cell_type[n_idx])
+
+                    #angle from 0 to 2pi, arctan2 has (y,x) convention for some reason
+                    theta = np.arctan2(n_y, n_x) % (2. *np.pi)
+                    thetas.append(theta)
+                    ring.append(nid)
+                    ring_map.append(i+1)
+                    cs.append(theta)
 
             seeds = new_seeds
 
@@ -140,7 +152,7 @@ class HGCalGeo:
         if(plot):
             #thetas = np.arctan2(self.ymap[ilay], self.xmap[ilay]) % (2. * np.pi)
             vals = np.ones_like(self.xmap[ilay])
-            plot_shower_hex(self.xmap[ilay], self.ymap[ilay], vals, nrings = self.nrings, alpha = 0.5, cmap = 'Blues', fig = fig)
+            #plot_shower_hex(self.xmap[ilay], self.ymap[ilay], vals, nrings = self.nrings, alpha = 0.5, cmap = 'Blues', fig = fig)
             fout = plot_dir + 'geo_lay%i.png' %(ilay+1)
             print("Saving %s" % fout)
             plt.savefig(fout)
@@ -169,7 +181,7 @@ class HGCalGeo:
         f.close()
 
 
-def plot_shower_hex(xs, ys, Es, nrings = 8, hexwidth = 1.20118, fout = "", fig = None, alpha = 1.0, cmap = 'viridis', zscale = 'max', vmin = 1e-4, vmax = None, log_scale = True):
+def plot_shower_hex(xs, ys, Es, nrings = 8, hexwidth = 1.2091, fout = "", fig = None, alpha = 1.0, cmap = 'viridis', zscale = 'max', vmin = 1e-4, vmax = None, log_scale = True):
     """Plot a shower with proper hexagonal binning.
     x and y locations assumed to be relative to center of a central cell.
     Note that the HGCal geometry has 'horizonally' oriented hexagons (pointy edge of center cell is up)

@@ -1,18 +1,31 @@
 from Utils import *
 from HGCalGeo import *
 
-plot_dir = 'plots/'
-d_dir = "/nashome/o/oamram/HGCal/"
-rf = uproot.open(d_dir + "DetIdLUT.root")
-geo = rf["analyzer/tree"].arrays()
-do_plot = False
+plot_dir = '../plots/geo_plots/'
+#plot_dir = '../plots/geo_plots_william_old/'
 
-keydf = ak.to_pandas(geo[0])
+d_dir = "/uscms_data/d3/oamram/HGCal/"
+#rf = uproot.open(d_dir + "DetIdLUT_william.root")
+rf = uproot.open(d_dir + "DetIdLUT_new.root")
+geo = rf["analyzer/tree"].arrays()
+do_plot = True
+
+
+manual_neighs = True
+nrings = 20
+
+hex_size = 1.2091 #new
+#hex_size = 1.2011 #william
+
+keydf = ak.to_dataframe(geo[0])
 keydf = keydf.set_index("globalid")
 
-data_dir = "/wclustre/cms_mlsim/denoise/CaloChallenge/hgcal_photons_fixed_angle_william/"
-branches = ['genPh_eta', 'genPh_phi']
-array = readpath(Path(data_dir + "ntupleTree_1.root"), start = None, end = None, branches = branches )
+data_dir = d_dir
+#fname = "photons_fixed_angle_william/ntupleTree_1.root"
+#branches = ['genPh_eta', 'genPh_phi']
+fname = "hgcal_tree_fixed_phi_10.root"
+branches = ['genPart_eta', 'genPart_phi']
+array = readpath(Path(data_dir + fname), start = None, end = None, branches = branches )
 
 
 cell_layer = (ak.to_numpy(geo["layerid"][0])).reshape(-1)
@@ -28,14 +41,17 @@ neighs = [ak.to_numpy(geo['n%i'%i][0] ).reshape(-1) for i in range(8)]
 
 
 
-gen_eta = ak.to_numpy(array['genPh_eta'])
-gen_phi = ak.to_numpy(array['genPh_phi'])
+gen_eta = ak.to_numpy(array[branches[0]])
+gen_phi = ak.to_numpy(array[branches[1]])
 gen_theta = 2* np.arctan(np.exp(-gen_eta[:,0]))
+
+print("Gen eta, phi : %.2f, %.2f" % (gen_eta[0], gen_phi[0]))
 
 #Restrict to EE
 det_mask = detector == 8 
 
-nlayers = 28
+nlayers = np.amax(cell_layer)
+print("%i layers" % nlayers)
 
 Rlength = 15
 xlength = Rlength/(2**0.5)
@@ -44,8 +60,6 @@ ylength = xlength
 
 
 
-nrings = 20
-hex_size = 1.2
 #Order of cells stored in each layer
 
 geom = HGCalGeo(nlayers, nrings)
@@ -67,13 +81,21 @@ for lay in range(1, nlayers+1):
     #restrict dR range to reduce search space
     dR_cut = dR < (nrings * hex_size * 2.0)
     center_cell = np.argmin(dR)
+
+
     mask = lay_mask & det_mask
     mask[mask] = dR_cut
     center_cell_id = cell_id[lay_mask & det_mask][center_cell]
     c0 = np.nonzero(cell_id == center_cell_id)[0]
+    print("Center", center_cell_id, np.amin(dR))
+
+    #plt.figure()
+    #plt.scatter(cell_x[mask], cell_y[mask], s=20)
+    #plt.savefig("All_scatter.png")
 
     neigh_lay = [n[mask] for n in neighs]
-    geom.build_layer(lay-1, center_cell_id, cell_id[mask], cell_x[mask], cell_y[mask], neigh_lay, cell_type = cell_type[mask], plot = do_plot)
+    geom.build_layer(lay-1, center_cell_id, cell_id[mask], cell_x[mask], cell_y[mask], neigh_lay, cell_type = cell_type[mask], dRs = dR[dR_cut],
+            plot = do_plot, plot_dir = plot_dir, manual_neighs = manual_neighs, hex_size = hex_size)
 
 geom.construct_id_map()
 geom.save('geom.pkl')

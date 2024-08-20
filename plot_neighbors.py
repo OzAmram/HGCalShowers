@@ -33,9 +33,11 @@ import seaborn as sns
 plt.rcParams = plt.rcParamsDefault
 mpl.rcParams.update({"font.size": 16})
 # %%
+d_dir = "/uscms_data/d3/oamram/HGCal/"
 rf = uproot.open(d_dir + "DetIdLUT.root")
+#rf = uproot.open(d_dir + "DetIdLUT_new.root")
 arr = rf["analyzer/tree"].arrays()
-keydf = ak.to_pandas(arr[0])
+keydf = ak.to_dataframe(arr[0])
 keydf = keydf.set_index("globalid")
 detIDD = {8: "EE", 9: "HSi", 10: "HSc"}
 keydf["detectorid"] = keydf["detectorid"].apply(lambda x: detIDD[x])
@@ -70,7 +72,7 @@ index = [
     "n7",
 ]
 for key in keydf.columns:
-    foo = ak.to_pandas(arr[0][key])
+    foo = ak.to_dataframe(arr[0][key])
     print(key, foo.shape)
 
 
@@ -124,20 +126,20 @@ if plotall:
     fig, axes = plt.subplots(4, 7, figsize=(35, 20), sharex=True, sharey=False)
     for i in range(len(axes)):
         for j in range(len(axes[0])):
-            layerid = i * (len(axes[0]) - 1) + j + 1
-            if layerid >= 23:
-                continue
+            layerid = i * len(axes[0]) + j + 1
+
             dfsel = keydf[(keydf["layerid"] == layerid) & (keydf["detectorid"] == "EE")]
             print(f"pos {i} {j} => {layerid} ({len(dfsel)})")
-            sns.histplot(
-                x="nneighbors",
-                data=dfsel,
-                discrete=True,
-                multiple="dodge",
-                ax=axes[i][j],
-            )
-            axes[i][j].set_title(f"layer {layerid}")
-            axes[i][j].set_yscale("log")
+            if(len(dfsel) > 0):
+                sns.histplot(
+                    x="nneighbors",
+                    data=dfsel,
+                    discrete=True,
+                    multiple="dodge",
+                    ax=axes[i][j],
+                )
+                axes[i][j].set_title(f"layer {layerid}")
+                axes[i][j].set_yscale("log")
     fig.suptitle("Number of Neighbors per Cell in HgCalEE")
 
     plt.tight_layout()
@@ -154,21 +156,20 @@ if plotall:
     fig, axes = plt.subplots(4, 7, figsize=(35, 20), sharex=True, sharey=False)
     for i in range(len(axes)):
         for j in range(len(axes[0])):
-            layerid = i * (len(axes[0]) - 1) + j + 1
-            if layerid >= 23:
-                continue
+            layerid = i * len(axes[0]) + j + 1
             dfsel = keydf[(keydf["layerid"] == layerid) & (keydf["detectorid"] != "EE")]
             print(f"pos {i} {j} => {layerid} ({len(dfsel)})")
-            sns.histplot(
-                x="nneighbors",
-                data=dfsel,
-                discrete=True,
-                multiple="dodge",
-                hue="detectorid",
-                ax=axes[i][j],
-            )
-            axes[i][j].set_title(f"layer {layerid}")
-            axes[i][j].set_yscale("log")
+            if(len(dfsel) > 0):
+                sns.histplot(
+                    x="nneighbors",
+                    data=dfsel,
+                    discrete=True,
+                    multiple="dodge",
+                    hue="detectorid",
+                    ax=axes[i][j],
+                )
+                axes[i][j].set_title(f"layer {layerid}")
+                axes[i][j].set_yscale("log")
     fig.suptitle("Number of Neighbors per Cell in HSi and HSc")
 
     plt.tight_layout()
@@ -186,24 +187,23 @@ if plotall:
     fig, axes = plt.subplots(4, 7, figsize=(35, 20), sharex=True, sharey=True)
     for i in range(len(axes)):
         for j in range(len(axes[0])):
-            layerid = i * (len(axes[0]) - 1) + j + 1
-            if layerid >= 23:
-                continue
+            layerid = i * len(axes[0]) + j + 1
             dfsel = keydf[
                 (keydf["layerid"] == layerid)
                 & (keydf["detectorid"] != "EE")
                 & (keydf["ngapneighbors"] != 0)
             ]
             print(f"pos {i} {j} => {layerid} ({len(dfsel)})")
-            sns.histplot(
-                x="ngapneighbors",
-                data=dfsel,
-                discrete=True,
-                multiple="dodge",
-                hue="detectorid",
-                ax=axes[i][j],
-            )
-            axes[i][j].set_title(f"layer {layerid}")
+            if(len(dfsel) > 0):
+                sns.histplot(
+                    x="ngapneighbors",
+                    data=dfsel,
+                    discrete=True,
+                    multiple="dodge",
+                    hue="detectorid",
+                    ax=axes[i][j],
+                )
+                axes[i][j].set_title(f"layer {layerid}")
     fig.suptitle("Number of added Neighbors from the other subdetector in the HGCalH")
 
     plt.tight_layout()
@@ -220,24 +220,24 @@ if plotall:
     fig, axes = plt.subplots(4, 7, figsize=(35, 20), sharex=True, sharey=False)
     for i in range(len(axes)):
         for j in range(len(axes[0])):
-            layerid = i * (len(axes[0]) - 1) + j + 1
-            if layerid >= 23:
-                continue
+            layerid = i * len(axes[0]) + j + 1
             dfsel = keydf[(keydf["layerid"] == layerid) & (keydf["detectorid"] != "EE")]
             dfsel = dfsel.assign(
                 totalneighbors=dfsel["nneighbors"] + dfsel["ngapneighbors"]
             )
             print(f"pos {i} {j} => {layerid} ({len(dfsel)})")
-            sns.histplot(
-                x="totalneighbors",
-                data=dfsel,
-                discrete=True,
-                multiple="dodge",
-                hue="detectorid",
-                ax=axes[i][j],
-            )
-            axes[i][j].set_title(f"layer {layerid}")
-            axes[i][j].set_yscale("log")
+
+            if(len(dfsel) > 0):
+                sns.histplot(
+                    x="totalneighbors",
+                    data=dfsel,
+                    discrete=True,
+                    multiple="dodge",
+                    hue="detectorid",
+                    ax=axes[i][j],
+                )
+                axes[i][j].set_title(f"layer {layerid}")
+                axes[i][j].set_yscale("log")
     fig.suptitle(
         "Number of Neighbors per Cell in HSi and HSc after fixing the gaps."
     )
@@ -258,9 +258,7 @@ if plotall:
     )
     for i in range(len(axes)):
         for j in range(len(axes[0])):
-            layerid = i * (len(axes[0]) - 1) + j + 1
-            if layerid >= 23:
-                continue
+            layerid = i * len(axes[0]) + j + 1
             dfsel = keydf[(keydf["layerid"] == layerid) & (keydf["detectorid"] != "EE")]
 
             dfsel = pd.concat(

@@ -1,23 +1,27 @@
 from HGCalGeo import *
 from Utils import *
 import h5py
+import os
 
 
-data_dir = "/wclustre/cms_mlsim/denoise/CaloChallenge/hgcal_photons_fixed_angle_william/"
-out_dir =  "/wclustre/cms_mlsim/denoise/CaloChallenge/HGCal_showers/"
+data_dir = "/uscms_data/d3/oamram/HGCal/photons_fixed_angle_william/"
+out_dir = "/uscms_data/d3/oamram/HGCal/HGCal_showers_geom_william_v2/"
+geom_name = "geom_william.pkl"
 #start = 0
 #end = 300
 start = end = None
 branches = ['simHit_detid', 'simHit_layer', 'simHit_x', 'simHit_y', 'simHit_E', 'genPh_eta', 'genPh_phi', 'genPh_E']
 
+os.system("mkdir %s" % out_dir)
+
 nFiles = 6
 
-for j in range(5,nFiles+1):
+for j in range(1,nFiles+1):
     array = readpath(Path(data_dir + "ntupleTree_%i.root" %j ), start = start, end = end, branches = branches)
 
     fout = out_dir + "HGCal_showers%i.h5" %j
 
-    f_geo = open('geom.pkl', 'rb')
+    f_geo = open(geom_name, 'rb')
     geo = pickle.load(f_geo)
 
     detids = array['simHit_detid']
