@@ -188,7 +188,7 @@ def plot_shower_hex(xs, ys, Es, nrings = 8, hexwidth = 1.2091, fout = "", fig = 
     But matplotlib plots vertically oriented hexagons, so we rotate the shower 90 degrees clockwise before plotting"""
 
     #skip empty showers
-    if(np.sum(Es) <= 0.): return None
+    #if(np.sum(Es) <= 0.): return None
 
 
 

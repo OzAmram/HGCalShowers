@@ -5,7 +5,7 @@ import os
 
 
 data_dir = "/uscms_data/d3/oamram/HGCal/photons_fixed_angle_william/"
-out_dir = "/uscms_data/d3/oamram/HGCal/HGCal_showers_geom_william_v2/"
+out_dir = "/uscms_data/d3/oamram/HGCal/HGCal_showers_william_v2/"
 geom_name = "geom_william.pkl"
 #start = 0
 #end = 300
@@ -14,9 +14,9 @@ branches = ['simHit_detid', 'simHit_layer', 'simHit_x', 'simHit_y', 'simHit_E', 
 
 os.system("mkdir %s" % out_dir)
 
-nFiles = 6
+nFiles = 13
 
-for j in range(1,nFiles+1):
+for j in range(1, nFiles+1):
     array = readpath(Path(data_dir + "ntupleTree_%i.root" %j ), start = start, end = end, branches = branches)
 
     fout = out_dir + "HGCal_showers%i.h5" %j
