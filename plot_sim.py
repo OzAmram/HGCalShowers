@@ -1,14 +1,14 @@
 from Utils import * 
 
 # %%
-start = 0
-end = 1000
-#start = end = None
-data_dir = "/nashome/o/oamram/HGCal/hgcal_photons_fixed_angle_william/"
-array = readpath(Path(data_dir + "ntupleTree_1.root"), start = start, end = end)
+#start = 0
+#end = 1000
+start = end = None
+data_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree.root"
+array = readpath(Path(data_path), start = start, end = end)
 
-d_dir = "/nashome/o/oamram/HGCal/"
-rf = uproot.open(d_dir + "DetIdLUT.root")
+geo_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/DetIdLUT_noGapFix.root"
+rf = uproot.open(geo_path)
 geo = rf["analyzer/tree"].arrays()
 
 cell_layer = ak.to_numpy(geo["layerid"])
@@ -18,7 +18,7 @@ cell_x = ak.to_numpy(geo["x"])
 cell_y = ak.to_numpy(geo["y"])
 
 
-detids = array['simHit_detid']
+detids = array['simHit_detId']
 layers = array['simHit_layer']
 sim_x = array['simHit_x']
 sim_y = array['simHit_y']
@@ -26,9 +26,9 @@ sim_z = array['simHit_z']
 sim_E = array['simHit_E']
 sim_eta = array['simHit_etaFixed']
 sim_phi = array['simHit_phi']
-gen_eta = ak.to_regular(array['genPh_eta'])
-gen_phi = ak.to_regular(array['genPh_phi'])
-gen_E = ak.to_regular(array['genPh_E'])
+gen_eta = ak.to_regular(array['genPart_eta'])
+gen_phi = ak.to_regular(array['genPart_phi'])
+gen_E = ak.to_regular(array['genPart_E'])
 eta_jacobi = np.abs(2* np.exp(-gen_eta)/ (1 + np.exp(-2*gen_eta)))
 
 n_sim = ak.num(sim_eta, axis=1)
@@ -44,6 +44,7 @@ sim_r = np.sqrt(sim_x**2 + sim_y**2)**(0.5)
 deta_mm = deta * eta_jacobi * (sim_r**2 + sim_z**2)**(0.5)
 dphi_mm = dphi * sim_r
 dR = (deta_mm**2 + dphi_mm**2)**(0.5)
+print(dR)
 
 
 gen_theta = 2* np.arctan(np.exp(-gen_eta[0,0]))

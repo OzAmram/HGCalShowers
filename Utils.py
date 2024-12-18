@@ -10,16 +10,16 @@ import awkward as ak
 import uproot
 # gen particle
 gen_branches=[
-'pileup_n',
- 'rho',
- 'genPh_n',
- 'genPh_E',
- 'genPh_px',
- 'genPh_py',
- 'genPh_pz',
- 'genPh_pT',
- 'genPh_eta',
- 'genPh_phi',
+#'pileup_n',
+#'rho',
+ 'genPart_n',
+ 'genPart_E',
+ 'genPart_px',
+ 'genPart_py',
+ 'genPart_pz',
+ 'genPart_pT',
+ 'genPart_eta',
+ 'genPart_phi',
 ]
 
 # simhits
@@ -33,7 +33,7 @@ simhit_branches = [
     "simHit_phi",
     "simHit_layer",
     "simHit_zside",
-    "simHit_detid",
+    "simHit_detId",
 ]
 
 #Z position of EE layers in centimeters

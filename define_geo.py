@@ -1,12 +1,13 @@
 from Utils import *
 from HGCalGeo import *
 
-plot_dir = '../plots/geo_plots/'
-#plot_dir = '../plots/geo_plots_william_old/'
+plot_dir = 'plots/'
 
-d_dir = "/uscms_data/d3/oamram/HGCal/"
+geo_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/DetIdLUT_noGapFix.root"
+data_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree.root"
+
 #rf = uproot.open(d_dir + "DetIdLUT_william.root")
-rf = uproot.open(d_dir + "DetIdLUT_new.root")
+rf = uproot.open(geo_path)
 geo = rf["analyzer/tree"].arrays()
 do_plot = True
 
@@ -20,12 +21,9 @@ hex_size = 1.2091 #new
 keydf = ak.to_dataframe(geo[0])
 keydf = keydf.set_index("globalid")
 
-data_dir = d_dir
-#fname = "photons_fixed_angle_william/ntupleTree_1.root"
 #branches = ['genPh_eta', 'genPh_phi']
-fname = "hgcal_tree_fixed_phi_10.root"
 branches = ['genPart_eta', 'genPart_phi']
-array = readpath(Path(data_dir + fname), start = None, end = None, branches = branches )
+array = readpath(Path(data_path), start = None, end = None, branches = branches )
 
 
 cell_layer = (ak.to_numpy(geo["layerid"][0])).reshape(-1)
