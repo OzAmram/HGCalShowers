@@ -7,8 +7,12 @@ import os
 #data_dir = "/uscms_data/d3/oamram/HGCal/photons_fixed_angle_william/"
 #out_dir = "/uscms_data/d3/oamram/HGCal/HGCal_showers_william_v2/"
 #geom_name = "geom_william.pkl"
-out_dir = ""
-geom_name = "geom.pkl"
+#out_dir = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/SinglePion_E-1To1000_Eta-2_Phi-1p57_Z-321-CloseByParticleGun/Phase2Spring24DIGIRECOMiniAOD-noPU_AllTP_140X_mcRun4_realistic_v4-v1_tree/h5s/"
+#file_list = "Pion_files.txt"
+
+out_dir = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/SinglePhoton_E-1To1000_Eta-2_Phi-1p57_Z-321-CloseByParticleGun/Phase2Spring24DIGIRECOMiniAOD-noPU_AllTP_140X_mcRun4_realistic_v4-v1_tree/h5s/"
+file_list = "Photon_files.txt"
+geom_name = "HGCal_geo_2024.pkl"
 #start = 0
 #end = 300
 start = end = None
@@ -16,15 +20,19 @@ branches = ['simHit_detId', 'simHit_layer', 'simHit_x', 'simHit_y', 'simHit_E', 
 
 if(len(out_dir) > 0): os.system("mkdir %s" % out_dir)
 
-nFiles = 13
-
+#nFiles = 13
 #in_files = [data_dir + "ntupleTree_%i.root" %j  for j in range(1, nFiles)]
-in_files = ["/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree_pion.root"]
+#in_files = ["/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree_pion.root"]
+in_files = open(file_list).read().splitlines()
 
 for j, fname in enumerate(in_files):
+    fout = out_dir + "HGCal_showers%i.h5" % j
+    if(os.path.exists(fout)): 
+        print("skipping %s" % fout)
+        continue
+
     array = readpath(Path(fname), start = start, end = end, branches = branches)
 
-    fout = out_dir + "HGCal_showers%i.h5" %j
 
     f_geo = open(geom_name, 'rb')
     geo = pickle.load(f_geo)

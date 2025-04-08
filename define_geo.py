@@ -3,14 +3,13 @@ from HGCalGeo import *
 
 plot_dir = 'plots/'
 
-geo_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/DetIdLUT_noGapFix.root"
-data_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree.root"
+geo_path = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/DetIdLUT.root"
+data_path = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/SinglePion_E-1To1000_Eta-2_Phi-1p57_Z-321-CloseByParticleGun/Phase2Spring24DIGIRECOMiniAOD-noPU_AllTP_140X_mcRun4_realistic_v4-v1_tree/HGCal_TTrees/hgcal_tree_1.root"
+fout = 'HGCal_geo_2024.pkl'
 
-#rf = uproot.open(d_dir + "DetIdLUT_william.root")
 rf = uproot.open(geo_path)
 geo = rf["analyzer/tree"].arrays()
 do_plot = True
-
 
 manual_neighs = True
 nrings = 20
@@ -47,6 +46,8 @@ print("Gen eta, phi : %.2f, %.2f" % (gen_eta[0], gen_phi[0]))
 
 #Restrict to EE
 det_mask = detector == 8 
+#det_mask = np.abs(detector) > 0
+#print(np.amin(detector), np.amax(detector))
 
 nlayers = np.amax(cell_layer)
 print("%i layers" % nlayers)
@@ -89,12 +90,12 @@ for lay in range(1, nlayers+1):
 
     #plt.figure()
     #plt.scatter(cell_x[mask], cell_y[mask], s=20)
-    #plt.savefig("All_scatter.png")
+    #plt.savefig(plot_dir + "All_scatter.png")
 
     neigh_lay = [n[mask] for n in neighs]
     geom.build_layer(lay-1, center_cell_id, cell_id[mask], cell_x[mask], cell_y[mask], neigh_lay, cell_type = cell_type[mask], dRs = dR[dR_cut],
             plot = do_plot, plot_dir = plot_dir, manual_neighs = manual_neighs, hex_size = hex_size)
 
 geom.construct_id_map()
-geom.save('geom.pkl')
+geom.save(fout)
 
