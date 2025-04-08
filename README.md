@@ -24,7 +24,9 @@ productions have been saved in the `geoms/` folder.
 
 This geometry can then be used to convert the HGCal NTuples into the h5 file
 format with the `convert_showers.py` script. 
-The h5 files have the dimension (NShowers, NLayers, NVoxels). 
+The h5 files have two keys: 'showers', with dimension (NShowers, NLayers, NVoxels), and 
+'gen_info', with dimension (NShowers, 3). 
+The 3 entries for the 'gen_info' key are the energy, eta and phi of the gen particle creating the shower. 
 NVoxels is the max voxels in a layer, across all the layers, meaning many layers are zero
 padded. 
 These h5 files can then be used to train your preferred generative model.
