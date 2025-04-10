@@ -1,31 +1,34 @@
 from HGCalGeo import *
+from Utils import *
 
 
-data_dir = "/nashome/o/oamram/HGCal/hgcal_photons_fixed_angle_william/"
+data_path = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/SinglePion_E-1To1000_Eta-2_Phi-1p57_Z-321-CloseByParticleGun/Phase2Spring24DIGIRECOMiniAOD-noPU_AllTP_140X_mcRun4_realistic_v4-v1_tree/HGCal_TTrees/hgcal_tree_1.root"
+f_geo = 'HGCal_geo_2024.pkl'
 plot_dir = 'plots/showers/'
+
 start = None
 end = None
-branches = ['simHit_detid', 'simHit_layer', 'simHit_x', 'simHit_y', 'simHit_E', 'genPh_eta', 'genPh_phi', 'genPh_E']
-array = readpath(Path(data_dir + "ntupleTree_1.root"), start = start, end = end, branches = branches)
+branches = ['simHit_detId', 'simHit_layer', 'simHit_x', 'simHit_y', 'simHit_E', 'genPart_eta', 'genPart_phi', 'genPart_E']
+array = readpath(Path(data_path), start = start, end = end, branches = branches)
 
-f_geo = open('geom.pkl', 'rb')
+f_geo = open(f_geo, 'rb')
 geo = pickle.load(f_geo)
 print(geo.nrings)
 
-detids = array['simHit_detid']
+detids = array['simHit_detId']
 layers = array['simHit_layer']
 sim_x = array['simHit_x']
 sim_y = array['simHit_y']
 sim_E = array['simHit_E']
-gen_eta = ak.to_regular(array['genPh_eta'])
-gen_phi = ak.to_regular(array['genPh_phi'])
-gen_E = ak.to_regular(array['genPh_E'])
+gen_eta = array['genPart_eta']
+gen_phi = array['genPart_phi']
+gen_E = array['genPart_E']
 print(len(gen_E))
 
 
 gen_theta = 2* np.arctan(np.exp(-gen_eta[:,0]))
-nlayers = 28
-nrings =20
+nlayers = geo.nlayers
+nrings = geo.nrings
 
 n_showers = 3
 
@@ -50,7 +53,7 @@ for i in range(n_showers):
         lay_E = np.sum(sim_E[i][mask])
         lay_E_inside = np.sum(sim_E[i][mask][dist_mask])
 
-        hex_direct = plot_shower(dx, dy, Es, nrings = nrings )
+        hex_direct = plot_shower_hex(dx, dy, Es, nrings = nrings )
 
         gen_r = np.tan(gen_theta[i]) * layer_Z[lay-1]
         gen_x = gen_r * np.cos(gen_phi[i,0])
@@ -63,7 +66,7 @@ for i in range(n_showers):
         plt.savefig(plot_dir + "shower%i_lay%i_direct.png" % (i, lay))
 
 
-        hex_vox = plot_shower(geo.xmap[lay-1], geo.ymap[lay-1], shower_voxelized[lay-1], nrings = nrings)
+        hex_vox = plot_shower_hex(geo.xmap[lay-1], geo.ymap[lay-1], shower_voxelized[lay-1], nrings = nrings)
         plt.scatter(dy_gen, -dx_gen, marker = 'x', c = 'black', s=30)
         plt.savefig(plot_dir + "shower%i_lay%i_voxelized.png" %(i,lay))
 
@@ -84,5 +87,5 @@ for lay in range(1,nlayers+1):
 
     Es = ak.flatten(sim_E[mask])
 
-    hex_direct = plot_shower(dx, dy, Es, nrings = nrings)
+    hex_direct = plot_shower_hex(dx, dy, Es, nrings = nrings)
     plt.savefig(plot_dir + "avg_shower_lay%i_direct.png" % (lay))

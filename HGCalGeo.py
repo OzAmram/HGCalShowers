@@ -10,12 +10,11 @@ import pickle
 #type = 0 200 micron thick Si, hexsize = 0.80079mm
 #type = 1 200 micron thick Si, hexsize = 1.20118mm
 
+
 class HGCalGeo:
-    def __init__(self, nlayers, nrings, hexsize = 1.2):
-        self.nrings = nrings
+    def __init__(self, nlayers, hexsize = 1.2, max_cells = 5000):
         self.nlayers = nlayers
-        #self.max_cells = hex_num(nrings)
-        self.max_cells = 3000
+        self.max_cells = max_cells
 
         #Width of each hexagon
         self.hexsize = 1.2
@@ -28,19 +27,26 @@ class HGCalGeo:
         self.xmap = np.zeros((nlayers, self.max_cells), np.float32)
         self.ymap = np.zeros((nlayers, self.max_cells), np.float32)
         self.ring_map = np.zeros((nlayers, self.max_cells), np.float32) - 1
+
+
+        # Cell type is cell_type variable (from CMSSW), ranges from 0 to 2, 
+        # plus offset describing which detector, 0=EE, 10=EH, 20=Scin
+        # Eg 2 -> EE type 2, 11 -> EH type 1
+        # Note that type 1 or type 2 does not mean the same thing in the different detectors
         self.type_map = np.zeros((nlayers, self.max_cells), np.float32) - 1
 
         #global x and y locations of center of central cell in each layer
         self.center_x = np.zeros((nlayers))
         self.center_y = np.zeros((nlayers))
         self.ncells = np.zeros((nlayers))
+        self.nrings = np.zeros((nlayers)) -1
 
     def get_neighs_by_dist(self, dRs, cell_ids, iRing = 0, hex_size = 1.2):
         dR_cut = (dRs < (iRing + 0.5) * hex_size) &  (dRs > (iRing - 0.5) * hex_size)
         return cell_ids[dR_cut]
 
 
-    def build_layer(self, ilay, center_id, cell_ids, cell_x, cell_y, neighbors, dRs = None,  cell_type = None, plot = False, manual_neighs = False, hex_size = 1.21, plot_dir = 'plots/'):
+    def build_layer(self, ilay, lay_nrings, center_id, cell_ids, cell_x, cell_y, neighbors, dRs = None,  cell_type = None, plot = False, manual_neighs = False, hex_size = 1.21, plot_dir = 'plots/'):
 
         center_cell_idx = np.nonzero(cell_ids == center_id)[0][0]
         print('Contructing GeoMap for Layer %i, center cell is %i' % (ilay, center_id))
@@ -50,6 +56,7 @@ class HGCalGeo:
 
 
         self.center_x[ilay], self.center_y[ilay] = cell_x[center_cell_idx], cell_y[center_cell_idx]
+        self.nrings[ilay] = lay_nrings
         print('center x,y', self.center_x[ilay], self.center_y[ilay])
 
         xs = [0.]
@@ -61,7 +68,7 @@ class HGCalGeo:
             fig = plt.figure(figsize=(12, 8))
             plt.title("Cells, Layer %i" % (ilay+1))
             plt.scatter( [0], [0], c='black', s = 20)
-            colors = ['blue', 'green', 'purple', 'red', 'orange', 'yellow', 'magenta', 'turquoise'] * 10
+            colors = ['blue', 'green', 'purple', 'red', 'orange', 'yellow', 'magenta', 'turquoise'] * 100
 
         filled = set()
         seeds = []
@@ -80,7 +87,7 @@ class HGCalGeo:
 
 
         #Iteratively find all the neighbors
-        for i in range(self.nrings):
+        for i in range(lay_nrings):
             new_seeds = []
             thetas = []
             ring = []
@@ -129,6 +136,7 @@ class HGCalGeo:
             sorted_ys = np.array(ys)[order].reshape(-1)
             sorted_types = np.array(types)[order].reshape(-1)
             n_ring_cells = len(thetas)
+
 
             #print(thetas)
             #rs = (sorted_xs**2 + sorted_ys**2)**0.5

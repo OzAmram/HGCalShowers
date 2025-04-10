@@ -4,10 +4,12 @@ from Utils import *
 #start = 0
 #end = 1000
 start = end = None
-data_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree.root"
+#data_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/test_samples/hgcal_tree.root"
+data_path = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/SinglePion_E-1To1000_Eta-2_Phi-1p57_Z-321-CloseByParticleGun/Phase2Spring24DIGIRECOMiniAOD-noPU_AllTP_140X_mcRun4_realistic_v4-v1_tree/HGCal_TTrees/hgcal_tree_1.root"
 array = readpath(Path(data_path), start = start, end = end)
 
-geo_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/DetIdLUT_noGapFix.root"
+#geo_path = "/uscms/home/oamram/nobackup/CMSSW_14_1_0_pre5/src/DetIdLUT_noGapFix.root"
+geo_path = "/eos/cms/store/group/offcomp-sim/HGCal_Sim_Samples_2024/DetIdLUT.root"
 rf = uproot.open(geo_path)
 geo = rf["analyzer/tree"].arrays()
 
@@ -38,6 +40,12 @@ dphi = sim_phi -gen_phi
 deta = sim_eta - gen_eta
 
 #print(deta, deta[0], deta.type)
+
+print("detector", np.amin(detector), np.amax(detector))
+print("cell layer", np.amin(cell_layer), np.amax(cell_layer))
+print("CE cell layer", np.amin(cell_layer[detector==8]), np.amax(cell_layer[detector==8]))
+print("CH cell layer", np.amin(cell_layer[detector==9]), np.amax(cell_layer[detector==9]))
+print("Scin cell layer", np.amin(cell_layer[detector==10]), np.amax(cell_layer[detector==10]))
 
 
 sim_r = np.sqrt(sim_x**2 + sim_y**2)**(0.5)
